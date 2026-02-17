@@ -2,6 +2,7 @@ package com.example.myapplication.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.ChatBubble
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Icon
@@ -35,9 +37,11 @@ import com.example.myapplication.ui.theme.Card
 import com.example.myapplication.ui.theme.TextSecondary
 
 @Composable
-fun RecipeMockVideoCard(recipe: RecipeVideo, modifier: Modifier = Modifier) {
+fun RecipeMockVideoCard(recipe: RecipeVideo, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
+    val clickableModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Box(
         modifier = modifier
+            .then(clickableModifier)
             .fillMaxWidth()
             .height(560.dp)
             .background(
@@ -49,6 +53,18 @@ fun RecipeMockVideoCard(recipe: RecipeVideo, modifier: Modifier = Modifier) {
             .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(26.dp))
             .padding(18.dp)
     ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .background(Color.Black.copy(alpha = 0.45f), CircleShape)
+                .padding(horizontal = 10.dp, vertical = 6.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Text("Смотреть", color = Color.White, style = MaterialTheme.typography.labelMedium)
+            }
+        }
+
         Column(modifier = Modifier.align(Alignment.BottomStart)) {
             Text(text = recipe.creator.nickname, color = Color.White, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
@@ -62,9 +78,9 @@ fun RecipeMockVideoCard(recipe: RecipeVideo, modifier: Modifier = Modifier) {
             Text(text = recipe.caption, color = TextSecondary)
             Spacer(modifier = Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatChip(text = recipe.likes, icon = Icons.Rounded.Favorite)
-                StatChip(text = recipe.comments, icon = Icons.Rounded.ChatBubble)
-                StatChip(text = recipe.saves, icon = Icons.Rounded.Bookmark)
+                StatChip(text = formatCount(recipe.likes), icon = Icons.Rounded.Favorite)
+                StatChip(text = formatCount(recipe.commentsCount), icon = Icons.Rounded.ChatBubble)
+                StatChip(text = formatCount(recipe.saves), icon = Icons.Rounded.Bookmark)
             }
         }
 
@@ -80,12 +96,14 @@ fun RecipeMockVideoCard(recipe: RecipeVideo, modifier: Modifier = Modifier) {
                     .border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text(recipe.creator.name.first().toString(), color = Color.White, fontWeight = FontWeight.Black)
+                Text(recipe.creator.avatarEmoji, color = Color.White, fontWeight = FontWeight.Black)
             }
             Text(recipe.creator.followers, color = Color.White, style = MaterialTheme.typography.labelMedium)
         }
     }
 }
+
+private fun formatCount(value: Int): String = if (value >= 1000) "%.1fK".format(value / 1000f) else value.toString()
 
 @Composable
 private fun StatChip(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
