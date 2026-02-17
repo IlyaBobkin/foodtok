@@ -33,11 +33,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.data.FakeRecipeRepository
 import com.example.myapplication.domain.GetAppDataUseCase
+import com.example.myapplication.model.RecipeVideo
+import com.example.myapplication.model.UserProfile
 import com.example.myapplication.ui.screens.CreateRecipeScreen
 import com.example.myapplication.ui.screens.DiscoverScreen
 import com.example.myapplication.ui.screens.FeedScreen
 import com.example.myapplication.ui.screens.InboxScreen
-import com.example.myapplication.ui.screens.ProfileScreen
+import com.example.myapplication.ui.screens.ProfileDetailScreen
+import com.example.myapplication.ui.screens.ProfilesScreen
+import com.example.myapplication.ui.screens.VideoDetailScreen
 import com.example.myapplication.ui.theme.Night
 
 private enum class AppTab { Feed, Discover, Create, Inbox, Profile }
@@ -46,11 +50,18 @@ private enum class AppTab { Feed, Discover, Create, Inbox, Profile }
 fun FoodTokApp() {
     val appData = remember { GetAppDataUseCase(FakeRecipeRepository()).invoke() }
     var selectedTab by remember { mutableStateOf(AppTab.Feed) }
+    var selectedVideo by remember { mutableStateOf<RecipeVideo?>(null) }
+    var selectedProfile by remember { mutableStateOf<UserProfile?>(null) }
 
     Scaffold(
         containerColor = Night,
         bottomBar = {
-            BottomBar(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
+            if (selectedVideo == null) {
+                BottomBar(selectedTab = selectedTab, onTabSelected = {
+                    selectedProfile = null
+                    selectedTab = it
+                })
+            }
         }
     ) { padding ->
         Box(
@@ -59,12 +70,19 @@ fun FoodTokApp() {
                 .padding(padding)
                 .background(Night)
         ) {
-            when (selectedTab) {
-                AppTab.Feed -> FeedScreen(appData.feed)
-                AppTab.Discover -> DiscoverScreen(appData.categories, appData.feed)
-                AppTab.Create -> CreateRecipeScreen()
-                AppTab.Inbox -> InboxScreen(appData.inbox)
-                AppTab.Profile -> ProfileScreen(appData.feed)
+            when {
+                selectedVideo != null -> VideoDetailScreen(recipe = selectedVideo!!, onBack = { selectedVideo = null })
+                selectedTab == AppTab.Feed -> FeedScreen(appData.feed, onVideoClick = { selectedVideo = it })
+                selectedTab == AppTab.Discover -> DiscoverScreen(appData.categories, appData.feed, onVideoClick = { selectedVideo = it })
+                selectedTab == AppTab.Create -> CreateRecipeScreen()
+                selectedTab == AppTab.Inbox -> InboxScreen(appData.inbox)
+                selectedTab == AppTab.Profile && selectedProfile != null -> ProfileDetailScreen(
+                    profile = selectedProfile!!,
+                    onVideoClick = { id -> selectedVideo = appData.feed.firstOrNull { it.id == id } },
+                    onBack = { selectedProfile = null }
+                )
+
+                else -> ProfilesScreen(appData.profiles, onProfileClick = { selectedProfile = it })
             }
         }
     }
@@ -88,7 +106,7 @@ private fun BottomBar(selectedTab: AppTab, onTabSelected: (AppTab) -> Unit) {
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.primary, CircleShape)
                 .padding(8.dp)
-            .clickable { onTabSelected(AppTab.Create) }
+                .clickable { onTabSelected(AppTab.Create) }
         ) {
             Icon(
                 imageVector = Icons.Rounded.Add,
@@ -100,7 +118,7 @@ private fun BottomBar(selectedTab: AppTab, onTabSelected: (AppTab) -> Unit) {
         }
 
         BottomItem("Inbox", Icons.Rounded.Send, selectedTab == AppTab.Inbox) { onTabSelected(AppTab.Inbox) }
-        BottomItem("Профиль", Icons.Rounded.Person, selectedTab == AppTab.Profile) { onTabSelected(AppTab.Profile) }
+        BottomItem("Профили", Icons.Rounded.Person, selectedTab == AppTab.Profile) { onTabSelected(AppTab.Profile) }
     }
 }
 

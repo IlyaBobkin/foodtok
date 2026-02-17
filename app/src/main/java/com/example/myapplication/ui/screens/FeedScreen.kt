@@ -21,7 +21,7 @@ import com.example.myapplication.ui.components.MetaPill
 import com.example.myapplication.ui.components.RecipeMockVideoCard
 
 @Composable
-fun FeedScreen(feed: List<RecipeVideo>) {
+fun FeedScreen(feed: List<RecipeVideo>, onVideoClick: (RecipeVideo) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
@@ -44,7 +44,7 @@ fun FeedScreen(feed: List<RecipeVideo>) {
 
         items(feed) { recipe ->
             Column(modifier = Modifier.fillMaxWidth()) {
-                RecipeMockVideoCard(recipe)
+                RecipeMockVideoCard(recipe = recipe, onClick = { onVideoClick(recipe) })
                 Spacer(modifier = Modifier.height(10.dp))
                 MetaPill(time = recipe.cookTime, difficulty = recipe.difficulty)
             }
