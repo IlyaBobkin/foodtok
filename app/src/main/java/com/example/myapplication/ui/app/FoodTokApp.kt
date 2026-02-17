@@ -56,6 +56,16 @@ fun FoodTokApp() {
     var selectedTab by remember { mutableStateOf(AppTab.Feed) }
     var selectedVideo by remember { mutableStateOf<RecipeVideo?>(null) }
     val commentsByRecipe = remember { mutableStateMapOf<String, List<RecipeComment>>() }
+    val currentUserProfile = remember {
+        appData.profiles.first().copy(
+            creator = appData.profiles.first().creator.copy(
+                name = "Вы",
+                nickname = "@you",
+                followers = "0"
+            ),
+            videos = appData.feed.take(4)
+        )
+    }
 
     Scaffold(
         containerColor = Night,
@@ -71,17 +81,17 @@ fun FoodTokApp() {
                 .padding(padding)
                 .background(Night)
         ) {
-            if (selectedVideo != null) {
+            selectedVideo?.let { video ->
                 VideoDetailScreen(
-                    recipe = selectedVideo!!,
-                    comments = commentsByRecipe[selectedVideo!!.id] ?: selectedVideo!!.comments,
+                    recipe = video,
+                    comments = commentsByRecipe[video.id] ?: video.comments,
                     onBack = { selectedVideo = null },
                     onCommentAdd = { comment ->
-                        val current = commentsByRecipe[selectedVideo!!.id] ?: selectedVideo!!.comments
-                        commentsByRecipe[selectedVideo!!.id] = current + comment
+                        val current = commentsByRecipe[video.id] ?: video.comments
+                        commentsByRecipe[video.id] = current + comment
                     }
                 )
-            } else {
+            } ?: run {
                 AnimatedContent(
                     targetState = selectedTab,
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -103,7 +113,7 @@ fun FoodTokApp() {
                         )
 
                         AppTab.Profile -> MyProfileScreen(
-                            profile = appData.profiles.first(),
+                            profile = currentUserProfile,
                             onVideoClick = { id -> selectedVideo = appData.feed.firstOrNull { it.id == id } }
                         )
                     }

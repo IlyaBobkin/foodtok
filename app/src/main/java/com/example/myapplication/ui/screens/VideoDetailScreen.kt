@@ -61,7 +61,7 @@ fun VideoDetailScreen(
     onCommentAdd: (RecipeComment) -> Unit
 ) {
     val context = LocalContext.current
-    val player = remember {
+    val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(Uri.parse(recipe.videoAsset)))
             prepare()
@@ -76,13 +76,13 @@ fun VideoDetailScreen(
     var commentDraft by remember { mutableStateOf("") }
     val likeScale by animateFloatAsState(targetValue = if (liked) 1.25f else 1f, label = "detailLike")
 
-    DisposableEffect(Unit) { onDispose { player.release() } }
+    DisposableEffect(Unit) { onDispose { exoPlayer.release() } }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         AndroidView(
             factory = {
                 PlayerView(it).apply {
-                    player = this@VideoDetailScreen.player
+                    player = exoPlayer
                     useController = false
                 }
             },
