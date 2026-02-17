@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,6 +25,7 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.ChatBubble
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Icon
@@ -58,7 +58,8 @@ fun VideoDetailScreen(
     recipe: RecipeVideo,
     comments: List<RecipeComment>,
     onBack: () -> Unit,
-    onCommentAdd: (RecipeComment) -> Unit
+    onCommentAdd: (RecipeComment) -> Unit,
+    onOpenCreator: (String) -> Unit
 ) {
     val context = LocalContext.current
     val exoPlayer = remember {
@@ -90,9 +91,7 @@ fun VideoDetailScreen(
         )
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -104,9 +103,7 @@ fun VideoDetailScreen(
         }
 
         Column(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 12.dp),
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -117,34 +114,56 @@ fun VideoDetailScreen(
             ActionButton(icon = Icons.Rounded.Bookmark, label = if (saved) "Сохранено" else recipe.saves.toString()) { saved = !saved }
         }
 
-        AnimatedVisibility(
-            visible = showDetails,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) {
+        AnimatedVisibility(visible = showDetails, modifier = Modifier.align(Alignment.BottomCenter)) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(430.dp)
+                    .fillMaxSize(0.72f)
                     .navigationBarsPadding()
                     .background(Color(0xFF14161C), RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp))
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
-                Text(recipe.title, color = Color.White, fontWeight = FontWeight.Bold)
-                Text(recipe.caption, color = Color.LightGray, modifier = Modifier.padding(top = 4.dp))
-                Text(recipe.fullDescription, color = Color.Gray, modifier = Modifier.padding(top = 8.dp))
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 10.dp)) {
-                    AssistChip(onClick = {}, label = { Text("${recipe.cookTime} • ${recipe.difficulty}") }, colors = AssistChipDefaults.assistChipColors(containerColor = Card, labelColor = Color.White))
-                    AssistChip(onClick = {}, label = { Text("${recipe.calories} • ${recipe.servings} порц.") }, colors = AssistChipDefaults.assistChipColors(containerColor = Card, labelColor = Color.White))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(16.dp))
+                        .clickable { onOpenCreator(recipe.creator.id) }
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.2f), CircleShape), contentAlignment = Alignment.Center) {
+                        Text(recipe.creator.avatarEmoji, color = Color.White)
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(recipe.creator.name, color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("${recipe.creator.nickname} • ${recipe.creator.followers} подписчиков", color = Color.LightGray)
+                    }
+                    Icon(Icons.Rounded.PersonAdd, contentDescription = null, tint = Color.White)
                 }
 
-                LazyColumn(modifier = Modifier.weight(1f).padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    item { Text("Ингредиенты", color = Color.White, fontWeight = FontWeight.SemiBold) }
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item { Text(recipe.title, color = Color.White, fontWeight = FontWeight.Bold) }
+                    item { Text(recipe.caption, color = Color.LightGray) }
+                    item { Text(recipe.fullDescription, color = Color.Gray) }
+                    item {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
+                            AssistChip(onClick = {}, label = { Text("${recipe.cookTime} • ${recipe.difficulty}") }, colors = AssistChipDefaults.assistChipColors(containerColor = Card, labelColor = Color.White))
+                            AssistChip(onClick = {}, label = { Text("${recipe.calories} • ${recipe.servings} порц.") }, colors = AssistChipDefaults.assistChipColors(containerColor = Card, labelColor = Color.White))
+                        }
+                    }
+                    item { Text("Ингредиенты", color = Color.White, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp)) }
                     items(recipe.ingredients) { Text("• $it", color = Color.LightGray) }
                     item { Text("Шаги приготовления", color = Color.White, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp)) }
                     items(recipe.steps) { step -> Text(step, color = Color.LightGray) }
                     item { Text("Комментарии", color = Color.White, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp)) }
-                    items(comments.takeLast(5)) { c -> Text("${c.author}: ${c.text}", color = Color.LightGray) }
+                    items(comments.takeLast(10)) { c -> Text("${c.author}: ${c.text}", color = Color.LightGray) }
+                    item { Spacer(modifier = Modifier.size(4.dp)) }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -170,7 +189,7 @@ fun VideoDetailScreen(
                         Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                     }
                 }
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.size(4.dp))
                 Text("Скрыть детали", color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally).clickable { showDetails = false })
             }
         }

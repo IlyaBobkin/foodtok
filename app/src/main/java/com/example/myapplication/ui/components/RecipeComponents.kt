@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,32 +31,52 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.myapplication.model.RecipeVideo
 import com.example.myapplication.ui.theme.Card
 import com.example.myapplication.ui.theme.TextSecondary
 
 @Composable
-fun RecipeMockVideoCard(recipe: RecipeVideo, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
+fun RecipeMockVideoCard(
+    recipe: RecipeVideo,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    onCreatorClick: (() -> Unit)? = null
+) {
     val clickableModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Box(
         modifier = modifier
             .then(clickableModifier)
             .fillMaxWidth()
             .height(560.dp)
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(recipe.accent.copy(alpha = 0.4f), Color.Black)
-                ),
-                shape = RoundedCornerShape(26.dp)
-            )
+            .background(Color.Black, RoundedCornerShape(26.dp))
             .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(26.dp))
-            .padding(18.dp)
     ) {
+        AsyncImage(
+            model = recipe.previewImageUrl,
+            contentDescription = recipe.title,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color.Black.copy(alpha = 0.1f), recipe.accent.copy(alpha = 0.25f), Color.Black.copy(alpha = 0.8f))
+                    ),
+                    shape = RoundedCornerShape(26.dp)
+                )
+        )
+
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
+                .padding(18.dp)
                 .background(Color.Black.copy(alpha = 0.45f), CircleShape)
                 .padding(horizontal = 10.dp, vertical = 6.dp)
         ) {
@@ -65,7 +86,7 @@ fun RecipeMockVideoCard(recipe: RecipeVideo, modifier: Modifier = Modifier, onCl
             }
         }
 
-        Column(modifier = Modifier.align(Alignment.BottomStart)) {
+        Column(modifier = Modifier.align(Alignment.BottomStart).padding(18.dp)) {
             Text(text = recipe.creator.nickname, color = Color.White, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -85,7 +106,7 @@ fun RecipeMockVideoCard(recipe: RecipeVideo, modifier: Modifier = Modifier, onCl
         }
 
         Column(
-            modifier = Modifier.align(Alignment.BottomEnd),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -93,7 +114,8 @@ fun RecipeMockVideoCard(recipe: RecipeVideo, modifier: Modifier = Modifier, onCl
                 modifier = Modifier
                     .size(54.dp)
                     .background(Color.White.copy(alpha = 0.2f), CircleShape)
-                    .border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape),
+                    .border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape)
+                    .let { base -> if (onCreatorClick != null) base.clickable(onClick = onCreatorClick) else base },
                 contentAlignment = Alignment.Center
             ) {
                 Text(recipe.creator.avatarEmoji, color = Color.White, fontWeight = FontWeight.Black)
