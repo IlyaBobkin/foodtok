@@ -12,12 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.weight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -32,43 +29,8 @@ import com.example.myapplication.model.UserProfile
 import com.example.myapplication.ui.theme.Card
 
 @Composable
-fun ProfilesScreen(profiles: List<UserProfile>, onProfileClick: (UserProfile) -> Unit) {
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item {
-            Text("Профили авторов", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text("Открывай профиль и смотри все видео конкретного автора", color = Color.Gray)
-        }
-        items(profiles) { profile ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onProfileClick(profile) }
-                    .background(Card, RoundedCornerShape(16.dp))
-                    .padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier.size(58.dp).background(Color(0xFF3A4258), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(profile.creator.avatarEmoji, color = Color.White)
-                }
-                Column(modifier = Modifier.padding(start = 12.dp).weight(1f)) {
-                    Text(profile.creator.name, color = Color.White, fontWeight = FontWeight.Bold)
-                    Text(profile.creator.nickname, color = Color.Gray)
-                    Text(profile.specialty, color = Color.LightGray, maxLines = 1)
-                }
-                Text("${profile.videos.size} видео", color = Color.White)
-            }
-        }
-    }
-}
-
-@Composable
-fun ProfileDetailScreen(profile: UserProfile, onVideoClick: (String) -> Unit, onBack: () -> Unit) {
+fun MyProfileScreen(profile: UserProfile, onVideoClick: (String) -> Unit) {
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("← Назад", color = Color.Gray, modifier = Modifier.clickable { onBack() })
-        Spacer(modifier = Modifier.height(12.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
@@ -79,23 +41,23 @@ fun ProfileDetailScreen(profile: UserProfile, onVideoClick: (String) -> Unit, on
                 Text(profile.creator.avatarEmoji, color = Color.White, style = MaterialTheme.typography.headlineMedium)
             }
             Column(modifier = Modifier.padding(start = 12.dp)) {
+                Text("Мой профиль", color = Color.Gray)
                 Text(profile.creator.name, color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Text(profile.creator.nickname, color = Color.Gray)
-                Text(profile.location, color = Color.LightGray)
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Stat(profile.videos.size.toString(), "Рецептов")
+            Stat(profile.videos.size.toString(), "Мои видео")
             Stat(profile.creator.followers, "Подписчики")
-            Stat(profile.location, "Город")
+            Stat("4.9", "Рейтинг")
         }
 
         Spacer(modifier = Modifier.height(14.dp))
         Text(profile.specialty, color = Color.LightGray)
         Spacer(modifier = Modifier.height(16.dp))
-        Text("Видео автора", color = Color.White, fontWeight = FontWeight.Bold)
+        Text("Мои рецепты", color = Color.White, fontWeight = FontWeight.Bold)
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -106,13 +68,13 @@ fun ProfileDetailScreen(profile: UserProfile, onVideoClick: (String) -> Unit, on
             items(profile.videos) { recipe ->
                 Box(
                     modifier = Modifier
-                        .height(160.dp)
+                        .height(170.dp)
                         .clickable { onVideoClick(recipe.id) }
                         .background(recipe.accent.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
-                        .padding(8.dp),
+                        .padding(10.dp),
                     contentAlignment = Alignment.BottomStart
                 ) {
-                    Text(recipe.title, color = Color.White, maxLines = 2, style = MaterialTheme.typography.labelSmall)
+                    Text(recipe.title, color = Color.White, maxLines = 2, style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
