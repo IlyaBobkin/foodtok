@@ -40,6 +40,7 @@ import com.example.myapplication.data.FakeRecipeRepository
 import com.example.myapplication.domain.GetAppDataUseCase
 import com.example.myapplication.model.RecipeComment
 import com.example.myapplication.model.RecipeVideo
+import com.example.myapplication.model.UserProfile
 import com.example.myapplication.ui.screens.CommentsScreen
 import com.example.myapplication.ui.screens.CreateRecipeScreen
 import com.example.myapplication.ui.screens.DiscoverScreen
@@ -55,6 +56,7 @@ fun FoodTokApp() {
     val appData = remember { GetAppDataUseCase(FakeRecipeRepository()).invoke() }
     var selectedTab by remember { mutableStateOf(AppTab.Feed) }
     var selectedVideo by remember { mutableStateOf<RecipeVideo?>(null) }
+    var openedProfile by remember { mutableStateOf<UserProfile?>(null) }
     val commentsByRecipe = remember { mutableStateMapOf<String, List<RecipeComment>>() }
     val currentUserProfile = remember {
         appData.profiles.first().copy(
@@ -70,7 +72,7 @@ fun FoodTokApp() {
     Scaffold(
         containerColor = Night,
         bottomBar = {
-            if (selectedVideo == null) {
+            if (selectedVideo == null && openedProfile == null) {
                 BottomBar(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
             }
         }
@@ -89,7 +91,24 @@ fun FoodTokApp() {
                     onCommentAdd = { comment ->
                         val current = commentsByRecipe[video.id] ?: video.comments
                         commentsByRecipe[video.id] = current + comment
+                    },
+                    onOpenCreator = { creatorId ->
+                        openedProfile = appData.profiles.firstOrNull { it.creator.id == creatorId }
                     }
+                )
+            } ?: openedProfile?.let { profile ->
+                MyProfileScreen(
+                    profile = profile,
+                    onVideoClick = { id -> selectedVideo = appData.feed.firstOrNull { it.id == id } }
+                )
+                Text(
+                    text = "← Назад",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(16.dp)
+                        .clickable { openedProfile = null }
                 )
             } ?: run {
                 AnimatedContent(
@@ -98,7 +117,12 @@ fun FoodTokApp() {
                     label = "tabTransition"
                 ) { tab ->
                     when (tab) {
-                        AppTab.Feed -> FeedScreen(appData.feed, onVideoClick = { selectedVideo = it })
+                        AppTab.Feed -> FeedScreen(
+                            feed = appData.feed,
+                            onVideoClick = { selectedVideo = it },
+                            onOpenCreator = { creatorId -> openedProfile = appData.profiles.firstOrNull { it.creator.id == creatorId } }
+                        )
+
                         AppTab.Discover -> DiscoverScreen(appData.categories, appData.feed, onVideoClick = { selectedVideo = it })
                         AppTab.Create -> CreateRecipeScreen()
                         AppTab.Comments -> CommentsScreen(

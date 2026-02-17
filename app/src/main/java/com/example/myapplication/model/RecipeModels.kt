@@ -36,6 +36,7 @@ data class RecipeVideo(
     val comments: List<RecipeComment>,
     val creator: Creator,
     val videoAsset: String,
+    val previewImageUrl: String,
     val accent: Color
 )
 
